@@ -29,7 +29,7 @@ const App: React.FC = () => {
   const generateCombinations = () => {
     const validNotWanted = notWanted.filter(n => n >= 1 && n <= 25);
     if (validNotWanted.length !== 5) {
-      alert("Please enter 5 valid numbers between 1 and 25.");
+      alert("Coloque 5 números entre 1 e 25 para serem excluídos");
       return;
     }
 
