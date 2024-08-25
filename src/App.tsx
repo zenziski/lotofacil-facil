@@ -1,17 +1,24 @@
-import { useState, useEffect, ChangeEvent } from 'react';
+import { useState, useEffect, ChangeEvent } from "react";
 
 const App: React.FC = () => {
   const [notWanted, setNotWanted] = useState<number[]>(Array(5).fill(0));
   const [combinations, setCombinations] = useState<number[][]>(() => {
-    const savedCombinations = localStorage.getItem('combinations');
+    const savedCombinations = localStorage.getItem("combinations");
     return savedCombinations ? JSON.parse(savedCombinations) : [];
   });
   const [gameResult, setGameResult] = useState<number[]>(Array(15).fill(0));
   const [prize14, setPrize14] = useState<number>(0);
   const [prize15, setPrize15] = useState<number>(0);
 
+  const formatValue = (value: number): string => {
+    return Intl.NumberFormat("pt-BR", {
+      style: "currency",
+      currency: "BRL",
+    }).format(value);
+  };
+
   useEffect(() => {
-    localStorage.setItem('combinations', JSON.stringify(combinations));
+    localStorage.setItem("combinations", JSON.stringify(combinations));
   }, [combinations]);
 
   const handleChange = (index: number, value: string) => {
@@ -27,7 +34,7 @@ const App: React.FC = () => {
   };
 
   const generateCombinations = () => {
-    const validNotWanted = notWanted.filter(n => n >= 1 && n <= 25);
+    const validNotWanted = notWanted.filter((n) => n >= 1 && n <= 25);
     if (validNotWanted.length !== 5) {
       alert("Coloque 5 números entre 1 e 25 para serem excluídos");
       return;
@@ -48,7 +55,10 @@ const App: React.FC = () => {
       for (let j = 0; j < 15; j++) {
         const randIndex = Math.floor(Math.random() * (copy.length - j));
         temp.push(copy[randIndex]);
-        [copy[randIndex], copy[copy.length - 1 - j]] = [copy[copy.length - 1 - j], copy[randIndex]];
+        [copy[randIndex], copy[copy.length - 1 - j]] = [
+          copy[copy.length - 1 - j],
+          copy[randIndex],
+        ];
       }
 
       finalCombinations.push(temp.sort((a, b) => a - b));
@@ -62,15 +72,15 @@ const App: React.FC = () => {
   };
 
   const calculateHits = (combo: number[]): number => {
-    return combo.filter(num => gameResult.includes(num)).length;
+    return combo.filter((num) => gameResult.includes(num)).length;
   };
 
   const calculatePerformance = () => {
     const performance = { 11: 0, 12: 0, 13: 0, 14: 0, 15: 0 };
 
-    combinations.forEach(combo => {
+    combinations.forEach((combo) => {
       const hits = calculateHits(combo);
-      if (hits >= 10) {
+      if (hits > 10) {
         performance[hits as keyof typeof performance]++;
       }
     });
@@ -79,6 +89,7 @@ const App: React.FC = () => {
   };
 
   const calculateTotalPrizes = (performance: any) => {
+    console.log(performance);
     const prizes = {
       11: 6,
       12: 12,
@@ -88,7 +99,7 @@ const App: React.FC = () => {
     };
 
     let totalPrizes = 0;
-    Object.keys(performance).forEach(key => {
+    Object.keys(performance).forEach((key) => {
       const hits = parseInt(key);
       totalPrizes += performance[hits] * prizes[hits as keyof typeof prizes];
     });
@@ -105,33 +116,23 @@ const App: React.FC = () => {
     <div className="min-h-screen bg-gray-100 p-4">
       <h1 className="text-2xl font-bold mb-4 text-center">Lotofácil fácil</h1>
 
-      {/* Inputs para os números a serem excluídos */}
-      <div className="mb-4 flex justify-center space-x-2">
-        {notWanted.map((value, index) => (
-          <input
-            key={index}
-            type="number"
-            value={value === 0 ? '' : value}
-            onChange={(e: ChangeEvent<HTMLInputElement>) => handleChange(index, e.target.value)}
-            className="w-10 h-10 text-center border border-gray-300 rounded-full"
-            placeholder={`#${index + 1}`}
-            min="1"
-            max="25"
-          />
-        ))}
-      </div>
-
-      {/* Inputs para o resultado do jogo */}
-      <div className="mb-4">
-        <h2 className="text-lg font-bold mb-2 text-center">Coloque o resultado do sorteio atual</h2>
-        <div className="flex justify-center space-x-2">
-          {gameResult.map((value, index) => (
+      <div className="mb-4 flex flex-col justify-center space-x-2">
+        <div>
+          <h3 className="text-sm mb-4 text-center">
+            Digite os números de 1 a 25 que você não deseja que entre nas
+            combinações
+          </h3>
+        </div>
+        <div className="mb-4 flex justify-center space-x-2">
+          {notWanted.map((value, index) => (
             <input
               key={index}
               type="number"
-              value={value === 0 ? '' : value}
-              onChange={(e: ChangeEvent<HTMLInputElement>) => handleResultChange(index, e.target.value)}
-              className="w-10 h-10 text-center border border-gray-300 rounded-full"
+              value={value === 0 ? "" : value}
+              onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                handleChange(index, e.target.value)
+              }
+              className="appearance-none w-10 h-10 text-center border border-gray-300 rounded-full"
               placeholder={`#${index + 1}`}
               min="1"
               max="25"
@@ -140,7 +141,28 @@ const App: React.FC = () => {
         </div>
       </div>
 
-      {/* Botão para gerar combinações */}
+      <div className="mb-4">
+        <h2 className="text-lg font-bold mb-2 text-center">
+          Coloque o resultado do sorteio atual
+        </h2>
+        <div className="flex justify-center space-x-2">
+          {gameResult.map((value, index) => (
+            <input
+              key={index}
+              type="number"
+              value={value === 0 ? "" : value}
+              onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                handleResultChange(index, e.target.value)
+              }
+              className="appearance-none w-10 h-10 text-center border border-gray-300 rounded-full"
+              placeholder={`#${index + 1}`}
+              min="1"
+              max="25"
+            />
+          ))}
+        </div>
+      </div>
+
       <div className="text-center mb-6">
         <button
           onClick={generateCombinations}
@@ -150,16 +172,18 @@ const App: React.FC = () => {
         </button>
       </div>
 
-      <div className="flex justify-between">
-        {/* Exibindo as combinações */}
+      <div className="flex justify-around">
         <div className="space-y-4">
           {combinations.map((combo, index) => (
-            <div key={index} className="flex justify-center items-center space-x-2 p-4 bg-white border border-gray-200 rounded shadow">
+            <div
+              key={index}
+              className="flex justify-center items-center space-x-2 p-4 bg-white border border-gray-200 rounded shadow"
+            >
               {combo.map((num, idx) => (
                 <span
                   key={idx}
                   className={`w-10 h-10 flex items-center justify-center text-white rounded-full ${
-                    isCorrectNumber(num) ? 'bg-green-500' : 'bg-red-500'
+                    isCorrectNumber(num) ? "bg-green-500" : "bg-red-500"
                   }`}
                 >
                   {num}
@@ -168,23 +192,19 @@ const App: React.FC = () => {
             </div>
           ))}
         </div>
-
-        {/* Container de Dados Gerais */}
         <div className="w-1/3 p-4 bg-white border border-gray-200 rounded shadow">
           <h2 className="text-lg font-bold mb-4">Análise</h2>
-
-          {/* Dezenas Utilizadas */}
           <h3 className="font-semibold mb-2">Dezenas usadas:</h3>
           <div className="grid grid-cols-5 gap-2">
-            {Array.from({ length: 25 }, (_, i) => i + 1).map(num => (
+            {Array.from({ length: 25 }, (_, i) => i + 1).map((num) => (
               <span
                 key={num}
                 className={`w-10 h-10 flex items-center justify-center text-white rounded-full ${
                   notWanted.includes(num)
-                    ? 'bg-gray-300'
-                    : combinations.some(combo => combo.includes(num))
-                    ? 'bg-red-500'
-                    : 'bg-gray-200'
+                    ? "bg-gray-300"
+                    : combinations.some((combo) => combo.includes(num))
+                    ? "bg-red-500"
+                    : "bg-gray-200"
                 }`}
               >
                 {num}
@@ -192,7 +212,6 @@ const App: React.FC = () => {
             ))}
           </div>
 
-          {/* Desempenho */}
           <h3 className="font-semibold mt-4 mb-2">Performance:</h3>
           <table className="w-full text-center border border-gray-300">
             <thead>
@@ -202,16 +221,16 @@ const App: React.FC = () => {
               </tr>
             </thead>
             <tbody>
-              {Object.keys(performance).map(key => (
+              {Object.keys(performance).map((key) => (
                 <tr key={key}>
                   <td className="border px-2">{key}</td>
-                  <td className="border px-2">{performance[key as unknown as keyof typeof performance]}</td>
+                  <td className="border px-2">
+                    {performance[key as unknown as keyof typeof performance]}
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
-
-          {/* Prêmios */}
           <h3 className="font-semibold mt-4 mb-2">Prêmios:</h3>
           <table className="w-full text-center border border-gray-300">
             <thead>
@@ -238,8 +257,10 @@ const App: React.FC = () => {
                 <td className="border px-2">
                   <input
                     type="number"
-                    value={prize14 === 0 ? '' : prize14}
-                    onChange={(e: ChangeEvent<HTMLInputElement>) => setPrize14(parseInt(e.target.value) || 0)}
+                    value={prize14 === 0 ? "" : prize14}
+                    onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                      setPrize14(parseInt(e.target.value) || 0)
+                    }
                     className="w-full text-center border-none"
                     placeholder="R$"
                   />
@@ -250,8 +271,10 @@ const App: React.FC = () => {
                 <td className="border px-2">
                   <input
                     type="number"
-                    value={prize15 === 0 ? '' : prize15}
-                    onChange={(e: ChangeEvent<HTMLInputElement>) => setPrize15(parseInt(e.target.value) || 0)}
+                    value={prize15 === 0 ? "" : prize15}
+                    onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                      setPrize15(parseInt(e.target.value) || 0)
+                    }
                     className="w-full text-center border-none"
                     placeholder="R$"
                   />
@@ -260,17 +283,15 @@ const App: React.FC = () => {
             </tbody>
           </table>
 
-          {/* Custo total da aposta */}
           <h3 className="font-semibold mt-4 mb-2">Total da aposta:</h3>
           <div className="text-center border border-gray-300 py-2">
             R$ 60,00
           </div>
 
-          {/* Total de Prêmios e Lucro */}
           <h3 className="font-semibold mt-4 mb-2">Total de prêmios/lucro:</h3>
           <div className="text-center border border-gray-300 py-2">
-            <div>Total de prêmios: R$ {totalPrizes}</div>
-            <div>Lucro: R$ {netProfit}</div>
+            <div>Total de prêmios: R$ {formatValue(totalPrizes)}</div>
+            <div>Lucro: R$ {formatValue(netProfit)}</div>
           </div>
         </div>
       </div>
